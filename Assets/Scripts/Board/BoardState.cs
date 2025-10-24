@@ -22,7 +22,8 @@ namespace Board.BoardMarkers
             Both = KingSide | QueenSide,
         }
 
-        public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        //public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        public const string DefaultFEN = "4p3/8/8/3N4/8/8/8/4P3 w KQkq - 0 1";
 
         PiecePrefabs _piecesPrefabs;
         RectTransform _piecesContainer;
@@ -149,8 +150,9 @@ namespace Board.BoardMarkers
             piece.CurrentFile = (Piece.File)toX;
             piece.CurrentRank = (Piece.Rank)toY;
             _pieces[toX, toY] = piece;
+            _pieces[fromX, fromY] = null;
 
-            _currentMove = _currentMove == Move.White ? Move.Black : Move.White;
+            //_currentMove = _currentMove == Move.White ? Move.Black : Move.White;
         }
     }
 }
