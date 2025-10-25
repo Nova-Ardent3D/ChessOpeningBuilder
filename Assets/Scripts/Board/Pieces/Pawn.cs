@@ -1,5 +1,6 @@
 using Board.BoardMarkers;
 using Board.Pieces.Moves;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,6 +20,7 @@ namespace Board.Pieces
                         {
                             break;
                         }
+
                         yield return new MoveData() { File = CurrentFile, Rank = CurrentRank + i + 1, Type = MoveType.Move };
                     }
                 }

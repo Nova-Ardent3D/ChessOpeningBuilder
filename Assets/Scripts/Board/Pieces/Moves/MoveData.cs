@@ -6,7 +6,8 @@ namespace Board.Pieces.Moves
     public enum MoveType
     {
         Move,
-        Take
+        Take,
+        Castle,
     }
 
     public struct MoveData

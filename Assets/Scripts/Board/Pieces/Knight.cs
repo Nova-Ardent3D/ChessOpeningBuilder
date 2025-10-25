@@ -1,5 +1,6 @@
 using Board.BoardMarkers;
 using Board.Pieces.Moves;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +8,7 @@ namespace Board.Pieces
 {
     public class Knight : Piece
     {
-        static readonly Vector2[] MoveDirections = new Vector2[]
+        public static readonly Vector2[] MoveDirections = new Vector2[]
         {
             new Vector2(1, 2),
             new Vector2(2, 1),

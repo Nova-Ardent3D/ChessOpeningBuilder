@@ -1,12 +1,12 @@
+using Board.Audio;
 using Board.MouseClickData;
-using Board.Pieces;
 using Board.Pieces.Moves;
+using Board.Pieces;
+using static Board.BoardMarkers.Highlighting;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
-using static Board.BoardMarkers.Highlighting;
+using UnityEngine;
 
 namespace Board.BoardMarkers
 {
@@ -21,6 +21,7 @@ namespace Board.BoardMarkers
         public Arrows arrows;
         public MoveDisplayManager moveDisplayManager;
         public GameObject piecesContainer;
+        public MoveAudio moveAudio;
 
         public RectTransform pieceContainer;
 
@@ -41,7 +42,7 @@ namespace Board.BoardMarkers
                 Debug.LogError("This GameObject needs to be a RectTransform for ParentClamp to work.");
             }
 
-            _boardState = new BoardState(pieceContainer, piecePrefabs);
+            _boardState = new BoardState(moveAudio, pieceContainer, piecePrefabs);
             _boardState.SetFEN(BoardState.DefaultFEN);
         }
 
@@ -65,7 +66,7 @@ namespace Board.BoardMarkers
 
                 if (_highlightedPieceMoves != null && _highlightedPieceMoves.Any(x => (int)x.File == leftClickData.FromPosition.x && (int)x.Rank == leftClickData.FromPosition.y))
                 {
-                    MovePiece(leftClickData.FromPosition);
+                    MovePiece(_highlightedPieceMoves.First(x => (int)x.File == leftClickData.FromPosition.x && (int)x.Rank == leftClickData.FromPosition.y));
                 }
                 else
                 {
@@ -112,7 +113,7 @@ namespace Board.BoardMarkers
                 {
                     if (_highlightedPieceMoves != null && _highlightedPieceMoves.Any(x => (int)x.File == leftClickData.ToPosition.x && (int)x.Rank == leftClickData.ToPosition.y))
                     {
-                        MovePiece(leftClickData.ToPosition);
+                        MovePiece(_highlightedPieceMoves.First(x => (int)x.File == leftClickData.ToPosition.x && (int)x.Rank == leftClickData.ToPosition.y));
                     }
                     else
                     {
@@ -140,15 +141,15 @@ namespace Board.BoardMarkers
             }
         }
 
-        void MovePiece(Vector2Int toPosition)
+        void MovePiece(MoveData moveData)
         {
             highlighting.SetLastMove
                 ( new Vector2Int((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank)
-                , toPosition
+                , new Vector2Int((int)moveData.File, (int)moveData.Rank)
                 );
             highlighting.ClearAll();
 
-            _boardState.MovePiece((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank, toPosition.x, toPosition.y);
+            _boardState.MovePiece((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank, (int)moveData.File, (int)moveData.Rank, moveData.Type);
             _highlightedPiece = null;
             _highlightedPieceMoves = null;
 

@@ -22,7 +22,7 @@ namespace Board.BoardMarkers
             foreach (var move in moveData)
             {
                 Move marker = GetMoveMarker(move);
-                if (move.Type == MoveType.Move)
+                if (move.Type == MoveType.Move || move.Type == MoveType.Castle)
                 {
                     _activeMoves.Push(marker);
                 }
@@ -36,7 +36,7 @@ namespace Board.BoardMarkers
         Move GetMoveMarker(MoveData move)
         {
             Move marker = null;
-            if (move.Type == MoveType.Move)
+            if (move.Type == MoveType.Move || move.Type == MoveType.Castle)
             {
                 if (_movePool.Count > 0)
                 {
