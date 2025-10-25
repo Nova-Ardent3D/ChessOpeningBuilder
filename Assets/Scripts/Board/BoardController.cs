@@ -9,6 +9,7 @@ using UnityEngine.EventSystems;
 using UnityEngine;
 using Board.BoardMarkers.Letters;
 using UnityEngine.Rendering.Universal;
+using Board.BoardMarkers.Promotion;
 
 namespace Board.BoardMarkers
 {
@@ -26,6 +27,7 @@ namespace Board.BoardMarkers
         public MoveDisplayManager moveDisplayManager;
         public GameObject piecesContainer;
         public MoveAudio moveAudio;
+        public PromotionModule promotionModule;
 
         public RectTransform pieceContainer;
 
@@ -53,6 +55,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (promotionModule.IsActive)
+                return;
+
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 highlighting.ClearAll(HighlightType.Left);
@@ -89,6 +94,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (promotionModule.IsActive)
+                return;
+
             if (eventData.button == PointerEventData.InputButton.Right)
             {
                 if (!rightClickData.IsMouseDown)
@@ -140,6 +148,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerMove(PointerEventData eventData)
         {
+            if (promotionModule.IsActive)
+                return;
+
             if (_highlightedPiece != null && leftClickData.IsMouseDown)
             {
                 _highlightedPiece.transform.localPosition = pieceContainer.transform.InverseTransformPoint(eventData.position);
@@ -148,17 +159,42 @@ namespace Board.BoardMarkers
 
         void MovePiece(MoveData moveData)
         {
-            highlighting.SetLastMove
-                ( new Vector2Int((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank)
-                , new Vector2Int((int)moveData.File, (int)moveData.Rank)
-                );
-            highlighting.ClearAll();
+            if (moveData.IsPromotion)
+            {
+                highlighting.ClearAll();
 
-            _boardState.MovePiece((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank, (int)moveData.File, (int)moveData.Rank, moveData.Type);
-            _highlightedPiece = null;
-            _highlightedPieceMoves = null;
+                promotionModule.Spawn(_highlightedPiece.IsWhite, moveData.File, moveData.Rank
+                , (piece) => {
+                    highlighting.SetLastMove
+                        ( new Vector2Int((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank)
+                        , new Vector2Int((int)moveData.File, (int)moveData.Rank)
+                        );
+                    highlighting.ClearAll();
 
-            moveDisplayManager.ClearMarkers();
+                    _boardState.MovePiece((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank, (int)moveData.File, (int)moveData.Rank, moveData.Type, piece);
+                    _highlightedPiece = null;
+                    _highlightedPieceMoves = null;
+
+                    moveDisplayManager.ClearMarkers();
+                }
+                , () => {
+                    _highlightedPiece.UpdatePosition();
+                });
+            }
+            else
+            {
+                highlighting.SetLastMove
+                        ( new Vector2Int((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank)
+                        , new Vector2Int((int)moveData.File, (int)moveData.Rank)
+                        );
+                highlighting.ClearAll();
+
+                _boardState.MovePiece((int)_highlightedPiece.CurrentFile, (int)_highlightedPiece.CurrentRank, (int)moveData.File, (int)moveData.Rank, moveData.Type);
+                _highlightedPiece = null;
+                _highlightedPieceMoves = null;
+
+                moveDisplayManager.ClearMarkers();
+            }
         }
 
         Vector2Int ToLocalPosition(Vector2 position)

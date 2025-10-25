@@ -12,8 +12,25 @@ namespace Board.Pieces
 
         public override PieceTypes Type => PieceTypes.Pawn;
 
-
         public override IEnumerable<MoveData> GetMoves(BoardState boardState)
+        {
+            foreach (var move in Moves(boardState))
+            {
+                if (move.Rank == Rank.Eight || move.Rank == Rank.One)
+                {
+                    // cant modify enumerable in for iteration
+                    MoveData moveCopy = move;
+                    moveCopy.IsPromotion = true;
+                    yield return moveCopy;
+                }
+                else
+                {
+                    yield return move;
+                }
+            }
+        }
+
+        IEnumerable<MoveData> Moves(BoardState boardState)
         {
             if (IsWhite)
             {

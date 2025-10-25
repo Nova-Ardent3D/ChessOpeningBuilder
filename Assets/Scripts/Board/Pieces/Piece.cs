@@ -174,6 +174,76 @@ namespace Board.Pieces
                 }
             }
 
+            foreach (var kingDirection in King.MoveDirections)
+            {
+                int targetFile = (int)file + (int)kingDirection.x;
+                int targetRank = (int)rank + (int)kingDirection.y;
+                if (targetFile < 0 || targetFile > 7 || targetRank < 0 || targetRank > 7)
+                {
+                    continue;
+                }
+
+                Piece piece = pieces[targetFile, targetRank];
+                if (piece == null)
+                {
+                    continue;
+                }
+                else if (piece.IsWhite == isWhite)
+                {
+                    continue;
+                }
+                else if (piece is King)
+                {
+                    return true;
+                }
+            }
+
+            // handle pawns
+            if (isWhite)
+            {
+                int targetFile = file - 1;
+                int targetRank = rank + 1;
+                if (targetFile >= 0 && targetFile <= 7 && targetRank >= 0 && targetRank <= 7)
+                {
+                    if (pieces[targetFile, targetRank] is Pawn pawn && !pawn.IsWhite)
+                    {
+                        return true;
+                    }
+                }
+
+                targetFile = file + 1;
+                targetRank = rank + 1;
+                if (targetFile >= 0 && targetFile <= 7 && targetRank >= 0 && targetRank <= 7)
+                {
+                    if (pieces[targetFile, targetRank] is Pawn pawn && !pawn.IsWhite)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else
+            {
+                int targetFile = file - 1;
+                int targetRank = rank - 1;
+                if (targetFile >= 0 && targetFile <= 7 && targetRank >= 0 && targetRank <= 7)
+                {
+                    if (pieces[targetFile, targetRank] is Pawn pawn && pawn.IsWhite)
+                    {
+                        return true;
+                    }
+                }
+
+                targetFile = file + 1;
+                targetRank = rank - 1;
+                if (targetFile >= 0 && targetFile <= 7 && targetRank >= 0 && targetRank <= 7)
+                {
+                    if (pieces[targetFile, targetRank] is Pawn pawn && pawn.IsWhite)
+                    {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 

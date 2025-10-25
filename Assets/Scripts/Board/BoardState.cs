@@ -1,9 +1,14 @@
-using Board.Pieces;
-using Board.Pieces.Moves;
-using UnityEngine;
-using System.Collections.Generic;
 using Board.Audio;
 using Board.History;
+using Board.Pieces;
+using Board.Pieces.Moves;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine;
+using UnityEngine.UIElements;
+using static Board.Pieces.Piece;
+using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
+using static UnityEngine.InputManagerEntry;
 
 namespace Board
 {
@@ -23,14 +28,15 @@ namespace Board
             Both = KingSide | QueenSide,
         }
 
-        public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        //public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        public const string DefaultFEN = "k7/3p4/8/8/8/8/4P3/7K w KQkq - 0 1";
 
         MoveAudio _moveAudio;
 
         PiecePrefabs _piecesPrefabs;
         RectTransform _piecesContainer;
 
-        Move _currentMove;
+        public Move CurrentMove { get; private set; }
         public CastlingRights WhiteCastlingRights { get; private set; }
         public CastlingRights BlackCastlingRights { get; private set; }
 
@@ -59,13 +65,13 @@ namespace Board
                 return null;
             }
 
-            if (_currentMove == Move.White && !_pieces[file, rank].IsWhite)
+            if (CurrentMove == Move.White && !_pieces[file, rank].IsWhite)
             {
                 moveData = null;
                 return null;
             }
 
-            if (_currentMove == Move.Black && _pieces[file, rank].IsWhite)
+            if (CurrentMove == Move.Black && _pieces[file, rank].IsWhite)
             {
                 moveData = null;
                 return null;
@@ -137,11 +143,11 @@ namespace Board
             {
                 if (c == 'w' || c == 'W')
                 {
-                    _currentMove = Move.White;
+                    CurrentMove = Move.White;
                 }
                 else if (c == 'b' || c == 'B')
                 {
-                    _currentMove = Move.Black;
+                    CurrentMove = Move.Black;
                 }
                 else if (c == 'K' && _pieces[7, 0] is Rook && _pieces[7, 0].IsWhite && _whiteKing?.CurrentRank == Piece.Rank.One && _whiteKing?.CurrentFile == Piece.File.E)
                 {
@@ -167,7 +173,7 @@ namespace Board
             }
         }
 
-        public void MovePiece(int fromX, int fromY, int toX, int toY, MoveType moveType)
+        public void MovePiece(int fromX, int fromY, int toX, int toY, MoveType moveType, Piece.PieceTypes? promotion = null)
         {
             bool moveTook = false;
 
@@ -194,72 +200,141 @@ namespace Board
             if (moveType == MoveType.Enpassant)
             {
                 moveTook = true;
-                _pieces[(int)_enPassantPawn.CurrentFile, (int)_enPassantPawn.CurrentRank] = null;
-                GameObject.Destroy(_enPassantPawn.gameObject);
+                Enpassant();
             }
 
-            if (_enPassantPawn != null)
-            {
-                _enPassantPawn.CanEnPassant = false;
-                _enPassantPawn = null;
-            }
-
-            if (piece is Pawn pawn && Mathf.Abs(toY - fromY) == 2)
-            {
-                _enPassantPawn = pawn;
-                _enPassantPawn.CanEnPassant = true;
-            }
-
+            UpdateEnpassantPawn(piece, fromY, toY);
 
             piece.CurrentFile = (Piece.File)toX;
             piece.CurrentRank = (Piece.Rank)toY;
             _pieces[toX, toY] = piece;
             _pieces[fromX, fromY] = null;
 
+
             if (moveType == MoveType.Castle)
             {
-                int rank;
-                int start;
-                int fin;
+                Castle(toX, toY);
+            }
+            else if (promotion != null)
+            {
+                PromoteSquare(toX, toY, promotion);
+            }
 
-                if (_currentMove == Move.White)
+            ChangeCurrentMove();
+            PlayMoveAudio(moveType, moveTook, promotion != null);
+            UpdateCastling(piece, fromX, fromY);
+        }
+
+        void Enpassant()
+        {
+            _pieces[(int)_enPassantPawn.CurrentFile, (int)_enPassantPawn.CurrentRank] = null;
+            GameObject.Destroy(_enPassantPawn.gameObject);
+        }
+
+        void UpdateEnpassantPawn(Piece movedPiece, int fromY, int toY)
+        {
+            if (_enPassantPawn != null)
+            {
+                _enPassantPawn.CanEnPassant = false;
+                _enPassantPawn = null;
+            }
+
+            if (movedPiece is Pawn pawn && Mathf.Abs(toY - fromY) == 2)
+            {
+                _enPassantPawn = pawn;
+                _enPassantPawn.CanEnPassant = true;
+            }
+        }
+
+        void PromoteSquare(int x, int y, Piece.PieceTypes? promotion = null)
+        {
+            Piece piece = _pieces[x, y];
+
+            if (promotion == null)
+            {
+                Debug.LogError("promotion type is null.");
+                return;
+            }
+
+            Piece prefab;
+            switch (promotion)
+            {
+                case Piece.PieceTypes.Queen:
+                    prefab = _piecesPrefabs.GetPiece(piece.IsWhite ? 'Q' : 'q');
+                    break;
+                case Piece.PieceTypes.Rook:
+                    prefab = _piecesPrefabs.GetPiece(piece.IsWhite ? 'R' : 'r');
+                    break;
+                case Piece.PieceTypes.Bishop:
+                    prefab = _piecesPrefabs.GetPiece(piece.IsWhite ? 'B' : 'b');
+                    break;
+                case Piece.PieceTypes.Knight:
+                    prefab = _piecesPrefabs.GetPiece(piece.IsWhite ? 'N' : 'n');
+                    break;
+                default:
+                    Debug.LogError("invalid promotion type.");
+                    return;
+            }
+
+            Piece newPiece = GameObject.Instantiate<Piece>(prefab, _piecesContainer);
+            newPiece.CurrentRank = piece.CurrentRank;
+            newPiece.CurrentFile = piece.CurrentFile;
+            newPiece.UpdateRotation(true);
+            _pieces[(int)newPiece.CurrentFile, (int)newPiece.CurrentRank] = newPiece;
+
+            GameObject.Destroy(piece.gameObject);
+        }
+
+        void Castle(int toX, int toY)
+        {
+            int rank;
+            int start;
+            int fin;
+
+            if (CurrentMove == Move.White)
+            {
+                if (toX == (int)Piece.File.C)
                 {
-                    if (toX == (int)Piece.File.C)
-                    {
-                        rank = (int)Piece.Rank.One;
-                        start = (int)Piece.File.A;
-                        fin = (int)Piece.File.D;
-                    }
-                    else
-                    {
-                        rank = (int)Piece.Rank.One;
-                        start = (int)Piece.File.H;
-                        fin = (int)Piece.File.F;
-                    }
+                    rank = (int)Piece.Rank.One;
+                    start = (int)Piece.File.A;
+                    fin = (int)Piece.File.D;
                 }
                 else
                 {
-                    if (toX == (int)Piece.File.C)
-                    {
-                        rank = (int)Piece.Rank.Eight;
-                        start = (int)Piece.File.A;
-                        fin = (int)Piece.File.D;
-                    }
-                    else
-                    {
-                        rank = (int)Piece.Rank.Eight;
-                        start = (int)Piece.File.H;
-                        fin = (int)Piece.File.F;
-                    }
+                    rank = (int)Piece.Rank.One;
+                    start = (int)Piece.File.H;
+                    fin = (int)Piece.File.F;
                 }
-
-                _pieces[fin, rank] = _pieces[start, rank];
-                _pieces[fin, rank].CurrentFile = (Piece.File)fin;
-                _pieces[start, rank] = null;
+            }
+            else
+            {
+                if (toX == (int)Piece.File.C)
+                {
+                    rank = (int)Piece.Rank.Eight;
+                    start = (int)Piece.File.A;
+                    fin = (int)Piece.File.D;
+                }
+                else
+                {
+                    rank = (int)Piece.Rank.Eight;
+                    start = (int)Piece.File.H;
+                    fin = (int)Piece.File.F;
+                }
             }
 
-            _currentMove = _currentMove == Move.White ? Move.Black : Move.White;
-            if ((_currentMove == Move.White && _whiteKing.IsAttacked(Pieces)) || (_currentMove == Move.Black && _blackKing.IsAttacked(Pieces)))
+            _pieces[fin, rank] = _pieces[start, rank];
+            _pieces[fin, rank].CurrentFile = (Piece.File)fin;
+            _pieces[start, rank] = null;
+        }
+
+        void ChangeCurrentMove()
+        {
+            CurrentMove = CurrentMove == Move.White ? Move.Black : Move.White;
+        }
+
+        void PlayMoveAudio(MoveType moveType, bool moveTook, bool promotion)
+        {
+            if ((CurrentMove == Move.White && _whiteKing.IsAttacked(Pieces)) || (CurrentMove == Move.Black && _blackKing.IsAttacked(Pieces)))
             {
                 _moveAudio.Play(MoveAudio.Clips.Check);
             }
@@ -271,12 +346,19 @@ namespace Board
             {
                 _moveAudio.Play(MoveAudio.Clips.Capture);
             }
+            else if (promotion)
+            {
+                _moveAudio.Play(MoveAudio.Clips.Promotion);
+            }
             else
             {
                 _moveAudio.Play(MoveAudio.Clips.Move);
             }
+        }
 
-            if (piece is King king)
+        void UpdateCastling(Piece pieceMoved, int piecePositionX, int piecePositionY)
+        {
+            if (pieceMoved is King king)
             {
                 if (king.IsWhite)
                 {
@@ -287,26 +369,26 @@ namespace Board
                     BlackCastlingRights = CastlingRights.None;
                 }
             }
-            else if (piece is Rook rook)
+            else if (pieceMoved is Rook rook)
             {
                 if (rook.IsWhite)
                 {
-                    if (fromX == 0 && fromY == 0)
+                    if (piecePositionX == 0 && piecePositionY == 0)
                     {
                         WhiteCastlingRights &= ~CastlingRights.QueenSide;
                     }
-                    else if (fromX == 7 && fromY == 0)
+                    else if (piecePositionX == 7 && piecePositionY == 0)
                     {
                         WhiteCastlingRights &= ~CastlingRights.KingSide;
                     }
                 }
                 else
                 {
-                    if (fromX == 0 && fromY == 7)
+                    if (piecePositionX == 0 && piecePositionY == 7)
                     {
                         BlackCastlingRights &= ~CastlingRights.QueenSide;
                     }
-                    else if (fromX == 7 && fromY == 7)
+                    else if (piecePositionX == 7 && piecePositionY == 7)
                     {
                         BlackCastlingRights &= ~CastlingRights.KingSide;
                     }
@@ -339,7 +421,7 @@ namespace Board
 
             if (piece is King king)
             {
-                if ((_currentMove == Move.White && _whiteKing.IsAttacked(Pieces, toX, toY)) || (_currentMove == Move.Black && _whiteKing.IsAttacked(Pieces, toX, toY)))
+                if ((CurrentMove == Move.White && _whiteKing.IsAttacked(Pieces, toX, toY)) || (CurrentMove == Move.Black && _blackKing.IsAttacked(Pieces, toX, toY)))
                 {
                     _pieces[fromX, fromY] = piece;
                     _pieces[toX, toY] = targetSquare;
@@ -348,7 +430,7 @@ namespace Board
             }
             else
             {
-                if ((_currentMove == Move.White && _blackKing.IsAttacked(Pieces)) || (_currentMove == Move.Black && _blackKing.IsAttacked(Pieces)))
+                if ((CurrentMove == Move.White && _whiteKing.IsAttacked(Pieces)) || (CurrentMove == Move.Black && _blackKing.IsAttacked(Pieces)))
                 {
                     _pieces[fromX, fromY] = piece;
                     _pieces[toX, toY] = targetSquare;

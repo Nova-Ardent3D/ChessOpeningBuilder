@@ -10,12 +10,14 @@ namespace Board.Audio
             Capture,
             Castle,
             Check,
+            Promotion,
         }
 
         [SerializeField] AudioSource Move;
         [SerializeField] AudioSource Capture;
         [SerializeField] AudioSource Castle;
         [SerializeField] AudioSource Check;
+        [SerializeField] AudioSource Promotion;
 
         public void Play(Clips clips)
         {
@@ -32,6 +34,9 @@ namespace Board.Audio
                     break;
                 case Clips.Check:
                     Check.Play();
+                    break;
+                case Clips.Promotion:
+                    Promotion.Play();
                     break;
             }
         }

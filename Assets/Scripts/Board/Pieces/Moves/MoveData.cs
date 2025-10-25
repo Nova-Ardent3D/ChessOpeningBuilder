@@ -16,5 +16,6 @@ namespace Board.Pieces.Moves
         public File File;
         public Rank Rank;
         public MoveType Type;
+        public bool IsPromotion;
     }
 }
