@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Board.Pieces
 {
-    public abstract class Piece : MonoBehaviour
+    public abstract class Piece : BoardFlipper
     {
         public enum File : int
         {
@@ -77,8 +77,9 @@ namespace Board.Pieces
 
         public abstract PieceTypes Type { get; }
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
             UpdatePosition();
         }
 
@@ -175,6 +176,7 @@ namespace Board.Pieces
 
             return false;
         }
+
 
     }
 }

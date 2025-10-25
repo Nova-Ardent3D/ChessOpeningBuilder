@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.EventSystems;
 using UnityEngine;
+using Board.BoardMarkers.Letters;
+using UnityEngine.Rendering.Universal;
 
 namespace Board.BoardMarkers
 {
@@ -17,6 +19,8 @@ namespace Board.BoardMarkers
         public MouseData rightClickData;
         public MouseData leftClickData;
 
+        public Ranks ranks;
+        public Files files;
         public Highlighting highlighting;
         public Arrows arrows;
         public MoveDisplayManager moveDisplayManager;
@@ -27,6 +31,7 @@ namespace Board.BoardMarkers
 
         BoardState _boardState;
         RectTransform _transform;
+        bool _isRotated;
 
         Piece _highlightedPiece;
         IEnumerable<MoveData> _highlightedPieceMoves;
@@ -162,6 +167,24 @@ namespace Board.BoardMarkers
             outPosition.x = 8 * Mathf.Clamp(outPosition.x / _transform.rect.width + 0.5f, 0, 1);
             outPosition.y = 8 * Mathf.Clamp(outPosition.y / _transform.rect.height + 0.5f, 0, 1);
             return new Vector2Int((int)outPosition.x, (int)outPosition.y);
+        }
+
+        public void RotateBoard()
+        {
+            _isRotated = ! _isRotated;
+            if (!_isRotated)
+                _transform.rotation = Quaternion.Euler(0, 0, 0);
+            else
+                _transform.rotation = Quaternion.Euler(0, 0, 180);
+
+            ranks.UpdateRotation(_isRotated);
+            files.UpdateRotation(_isRotated);
+
+            foreach (var piece in _boardState.Pieces)
+            {
+                if (piece != null)
+                    piece.UpdateRotation(_isRotated);
+            }
         }
     }
 }

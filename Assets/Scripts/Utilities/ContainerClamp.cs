@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Utilities
 {
-    public class LettersClamp : MonoBehaviour
+    public class ContainerClamp : MonoBehaviour
     {
         RectTransform _parent;
         RectTransform _transform;
