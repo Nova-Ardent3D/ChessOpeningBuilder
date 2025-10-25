@@ -143,6 +143,10 @@ namespace Board.Pieces
                     {
                         return true;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
 
@@ -170,6 +174,10 @@ namespace Board.Pieces
                     else if (piece is Rook || piece is Queen)
                     {
                         return true;
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
             }
