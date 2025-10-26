@@ -223,6 +223,17 @@ namespace Board
             ChangeCurrentMove();
             PlayMoveAudio(moveType, moveTook, promotion != null);
             UpdateCastling(piece, fromX, fromY);
+            AddMoveToHistory
+                ( piece.Type
+                , (Piece.File)fromX
+                , (Piece.Rank)fromY
+                , (Piece.File)toX
+                , (Piece.Rank)toY
+                , moveTook
+                , (CurrentMove == Move.White && _whiteKing.IsAttacked(Pieces)) || (CurrentMove == Move.Black && _blackKing.IsAttacked(Pieces))
+                , moveType == MoveType.Castle
+                , piece.IsWhite
+                );
         }
 
         void Enpassant()
@@ -394,6 +405,24 @@ namespace Board
                     }
                 }
             }
+        }
+
+        void AddMoveToHistory(PieceTypes pieceType, File fileFrom, Rank rankfrom, File fileTo, Rank rankTo, bool isCapture, bool isCheck, bool isCastle, bool isWhite)
+        {
+            History.Move move = new History.Move();
+            move.IsCapture = isCapture;
+            move.IsCheck = isCheck;
+            move.IsCastle = isCastle;
+            move.IsWhite = isWhite;
+            move.PieceType = pieceType;
+
+            move.FromFile = fileFrom;
+            move.FromRank = rankfrom;
+
+            move.ToFile = fileTo;
+            move.ToRank = rankTo;
+            
+            _boardHistory.AddMove(move);
         }
 
         IEnumerable<MoveData> ValidateMoves(int fromX, int fromY, IEnumerable<MoveData> moves)
