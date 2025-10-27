@@ -25,8 +25,7 @@ namespace Board
             Both = KingSide | QueenSide,
         }
 
-       //public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        public const string DefaultFEN = "4k3/4p3/8/8/8/8/3P4/4K3 w KQkq - 0 1";
+        public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         MoveAudio _moveAudio;
 

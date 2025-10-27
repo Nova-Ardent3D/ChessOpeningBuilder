@@ -1,16 +1,17 @@
 using Board.Audio;
-using Board.MouseClickData;
-using Board.Pieces.Moves;
-using Board.Pieces;
-using static Board.BoardMarkers.Highlighting;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine.EventSystems;
-using UnityEngine;
 using Board.BoardMarkers.Letters;
-using UnityEngine.Rendering.Universal;
 using Board.BoardMarkers.Promotion;
 using Board.History;
+using Board.MouseClickData;
+using Board.Pieces;
+using Board.Pieces.Moves;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.Overlays;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.Rendering.Universal;
+using static Board.BoardMarkers.Highlighting;
 
 namespace Board.BoardMarkers
 {
@@ -54,6 +55,8 @@ namespace Board.BoardMarkers
 
             _boardState = new BoardState(boardHistory, moveAudio, pieceContainer, piecePrefabs);
             _boardState.SetStartingFEN(BoardState.DefaultFEN);
+
+            boardHistory.SetBoardController(this);
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -70,6 +73,9 @@ namespace Board.BoardMarkers
             }
             else if (eventData.button == PointerEventData.InputButton.Left)
             {
+                if (!boardHistory.IsLookingAtLatestMove)
+                    return;
+
                 highlighting.ClearAll(HighlightType.Right);
                 highlighting.ClearAll(HighlightType.Left);
                 arrows.ClearAll();
@@ -123,6 +129,9 @@ namespace Board.BoardMarkers
             }
             else if (eventData.button == PointerEventData.InputButton.Left)
             {
+                if (!boardHistory.IsLookingAtLatestMove)
+                    return;
+
                 leftClickData.ToPosition = ToLocalPosition(eventData.position);
 
                 if (_highlightedPiece != null && leftClickData.IsMouseDown)
@@ -224,6 +233,19 @@ namespace Board.BoardMarkers
                 if (piece != null)
                     piece.UpdateRotation(_isRotated);
             }
+        }
+
+        public void ViewingOldMove(int x1, int y1, int x2, int y2)
+        {
+            if (promotionModule.IsActive)
+                promotionModule.CancelPressed();
+
+            _highlightedPiece = null;
+            _highlightedPieceMoves = null;
+
+            highlighting.SetLastMove(new Vector2Int(x1, y1), new Vector2Int(x2, y2));
+            highlighting.ClearAll();
+            arrows.ClearAll();
         }
     }
 }

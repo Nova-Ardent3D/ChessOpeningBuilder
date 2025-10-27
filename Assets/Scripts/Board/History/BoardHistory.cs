@@ -1,8 +1,9 @@
+using Board.BoardMarkers;
 using Board.History.Pairs;
 using NUnit.Framework;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Board.History
 {
@@ -25,6 +26,15 @@ namespace Board.History
             public bool IsWhite;
         }
 
+        public bool IsLookingAtLatestMove
+        {
+            get
+            {
+                return (_viewingMove.Index == _latestMove.Index && _viewingMove.IsWhite == _latestMove.IsWhite);
+            }
+        }
+
+
         public MovePositionData movePositionData;
 
         MoveView _latestMove = new MoveView() { Index = 0, IsWhite = true };
@@ -33,6 +43,7 @@ namespace Board.History
         List<MoveLabelPair> _moveLabels = new List<MoveLabelPair>();
         List<MovePair> _moves = new List<MovePair>();
         public BoardState _boardState;
+        public BoardController _boardController;
 
         public MoveIndexLabel moveIndexLabelPrefab;
         public MoveLabel moveLabelPrefab;
@@ -45,9 +56,42 @@ namespace Board.History
             AddMovePair();
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                StepInOneMove();
+            }
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                StepOutOneMove();
+            }
+        }
+
+        void StepInOneMove()
+        {
+            if (IsLookingAtLatestMove)
+            {
+                return;
+            }
+        }
+
+        void StepOutOneMove()
+        {
+            if (_viewingMove.Index == 0 && _viewingMove.IsWhite)
+            {
+                return;
+            }
+        }
+
         public void SetBoardState(BoardState boardState)
         {
             _boardState = boardState;
+        }
+
+        public void SetBoardController(BoardController boardController)
+        {
+            _boardController = boardController;
         }
 
         public void GoToMove(int index, bool isWhite)
@@ -58,7 +102,11 @@ namespace Board.History
             {
                 Debug.LogError("BoardState is not set in BoardHistory.");
             }
-            _boardState.SetFEN(isWhite ? _moves[index].White.resultingFen : _moves[index].Black.resultingFen);
+
+            Move move = isWhite ? _moves[index].White : _moves[index].Black;
+
+            _boardController.ViewingOldMove((int)move.FromFile, (int)move.FromRank, (int)move.ToFile, (int)move.ToRank);
+            _boardState.SetFEN(move.resultingFen);
         }
 
         public void AddMove(Move move)
@@ -78,7 +126,9 @@ namespace Board.History
 
                 int moveCount = _moves.Count;
                 moveLabel.SetCallback(() => GoToMove(moveCount - 1, false));
-                
+                _latestMove = new MoveView() { Index = moveCount - 1, IsWhite = false };
+                _viewingMove = _latestMove;
+
                 AddMovePair();
             }
             else
@@ -88,6 +138,9 @@ namespace Board.History
 
                 int moveCount = _moves.Count;
                 moveLabel.SetCallback(() => GoToMove(moveCount - 1, true));
+
+                _latestMove = new MoveView() { Index = moveCount - 1, IsWhite = true };
+                _viewingMove = _latestMove;
             }
         }
 
