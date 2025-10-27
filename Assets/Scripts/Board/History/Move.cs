@@ -37,6 +37,16 @@ namespace Board.History
             }
 
             string notation = "";
+            if (FileDisambiguation.HasValue)
+            {
+                notation += FileDisambiguation.Value.ToString().ToLower();
+            }
+            
+            if (RankDisambiguation.HasValue)
+            {
+                notation += ((int)RankDisambiguation.Value + 1).ToString();
+            }
+
             switch (PieceType)
             {
                 case PieceTypes.Pawn:
@@ -50,19 +60,19 @@ namespace Board.History
                     }
                     break;
                 case PieceTypes.Knight:
-                    notation += IsWhite ? "N" : "n";
+                    notation += "N";
                     break;
                 case PieceTypes.Bishop:
-                    notation += IsWhite ? "B" : "b";
+                    notation += "B";
                     break;
                 case PieceTypes.Rook:
-                    notation += IsWhite ? "R" : "r";
+                    notation += "R";
                     break;
                 case PieceTypes.Queen:
-                    notation += IsWhite ? "Q" : "q";
+                    notation += "Q";
                     break;
                 case PieceTypes.King:
-                    notation += IsWhite ? "K" : "k";
+                    notation += "K";
                     break;
             }
 

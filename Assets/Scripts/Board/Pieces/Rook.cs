@@ -58,5 +58,39 @@ namespace Board.Pieces
                 }
             }
         }
+
+        public override IEnumerable<Piece> GetAttackingPiecesOfType(Piece[,] pieces, int fromX, int fromY)
+        {
+            foreach (var direction in MoveDirections)
+            {
+                for (int i = 1; i < 8; i++)
+                {
+                    int targetFile = (int)CurrentFile + (int)direction.x * i;
+                    int targetRank = (int)CurrentRank + (int)direction.y * i;
+                    if (targetFile < 0 || targetFile > 7 || targetRank < 0 || targetRank > 7)
+                    {
+                        break;
+                    }
+
+                    if (targetFile == fromX && targetRank == fromY)
+                    {
+                        break;
+                    }
+
+                    if (pieces[targetFile, targetRank] == null)
+                    {
+                        continue;
+                    }
+                    else if (pieces[targetFile, targetRank] is Rook rook && rook.IsWhite == IsWhite)
+                    {
+                        yield return rook;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

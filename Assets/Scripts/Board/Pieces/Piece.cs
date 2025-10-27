@@ -255,7 +255,7 @@ namespace Board.Pieces
             return false;
         }
 
-        public virtual IEnumerable<Piece> GetAttackingPiecesOfType(Piece[,] pieces)
+        public virtual IEnumerable<Piece> GetAttackingPiecesOfType(Piece[,] pieces, int fromX, int fromY)
         {
             yield break;
         }

@@ -3,12 +3,9 @@ using Board.History;
 using Board.Pieces;
 using Board.Pieces.Moves;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 using static Board.Pieces.Piece;
-using static TMPro.SpriteAssetUtilities.TexturePacker_JsonArray;
-using static UnityEngine.InputManagerEntry;
+using System.Linq;
 
 namespace Board
 {
@@ -29,7 +26,6 @@ namespace Board
         }
 
         public const string DefaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        //public const string DefaultFEN = "k7/3p4/8/8/8/8/4P3/7K w KQkq - 0 1";
 
         MoveAudio _moveAudio;
 
@@ -46,15 +42,16 @@ namespace Board
 
         Pawn _enPassantPawn;
 
-        BoardHistory _boardHistory = new BoardHistory();
+        BoardHistory _boardHistory;
 
         public Piece[,] Pieces => _pieces;
 
-        public BoardState(MoveAudio moveAudio, RectTransform piecesContainer, PiecePrefabs piecePrefabs)
+        public BoardState(BoardHistory boardHistory, MoveAudio moveAudio, RectTransform piecesContainer, PiecePrefabs piecePrefabs)
         {
             _piecesContainer = piecesContainer;
             _piecesPrefabs = piecePrefabs;
             _moveAudio = moveAudio;
+            _boardHistory = boardHistory;
         }
 
         public Piece GetPieceInfo(out IEnumerable<MoveData> moveData, int file, int rank)
@@ -421,7 +418,49 @@ namespace Board
 
             move.ToFile = fileTo;
             move.ToRank = rankTo;
-            
+
+            Piece piece = _pieces[(int)fileTo, (int)rankTo];
+            if (piece == null)
+            {
+                Debug.LogError("attempted to add move to history for null piece.");
+                return;
+            }
+
+            Piece[] ambiguousPieces = piece.GetAttackingPiecesOfType(Pieces, (int)fileFrom, (int)rankfrom).ToArray();
+            if (ambiguousPieces.Length > 0)
+            {
+                bool isFileAmbiguous = false;
+                bool isRankAmbiguous = false;
+                foreach (var ambiguousPiece in ambiguousPieces)
+                {
+                    if (ambiguousPiece.CurrentFile == fileFrom)
+                    {
+                        isFileAmbiguous = true;
+                    }
+                    if (ambiguousPiece.CurrentRank == rankfrom)
+                    {
+                        isRankAmbiguous = true;
+                    }
+                }
+
+                if (isFileAmbiguous)
+                {
+                    if (isRankAmbiguous)
+                    {
+                        move.FileDisambiguation = fileFrom;
+                        move.RankDisambiguation = rankfrom;
+                    }
+                    else
+                    {
+                        move.RankDisambiguation = rankfrom;
+                    }
+                }
+                else
+                {
+                    move.FileDisambiguation = fileFrom;
+                }
+            }
+
             _boardHistory.AddMove(move);
         }
 

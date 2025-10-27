@@ -10,6 +10,7 @@ using UnityEngine;
 using Board.BoardMarkers.Letters;
 using UnityEngine.Rendering.Universal;
 using Board.BoardMarkers.Promotion;
+using Board.History;
 
 namespace Board.BoardMarkers
 {
@@ -28,6 +29,8 @@ namespace Board.BoardMarkers
         public GameObject piecesContainer;
         public MoveAudio moveAudio;
         public PromotionModule promotionModule;
+
+        public BoardHistory boardHistory;
 
         public RectTransform pieceContainer;
 
@@ -49,7 +52,7 @@ namespace Board.BoardMarkers
                 Debug.LogError("This GameObject needs to be a RectTransform for ParentClamp to work.");
             }
 
-            _boardState = new BoardState(moveAudio, pieceContainer, piecePrefabs);
+            _boardState = new BoardState(boardHistory, moveAudio, pieceContainer, piecePrefabs);
             _boardState.SetFEN(BoardState.DefaultFEN);
         }
 
