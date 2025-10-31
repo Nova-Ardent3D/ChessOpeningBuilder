@@ -57,8 +57,6 @@ namespace Board.BoardMarkers
 
             _boardState = new BoardState(boardHistory, moveAudio, pieceContainer, piecePrefabs);
             _boardState.SetStartingFEN(BoardState.DefaultFEN);
-
-            boardHistory.SetBoardController(this);
         }
 
         void Update()
@@ -271,6 +269,13 @@ namespace Board.BoardMarkers
             {
                 moveAudio.Play(audio);
             });
+        }
+
+        public void ClearAllHighlights()
+        {
+            highlighting.ClearLastMove();
+            highlighting.ClearAll();
+            arrows.ClearAll();
         }
     }
 }

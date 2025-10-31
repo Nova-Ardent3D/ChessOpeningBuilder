@@ -143,6 +143,15 @@ namespace Board.BoardMarkers
             UpdateLastMove();
         }
 
+        public void ClearLastMove()
+        {
+            _lastMoveActive = false;
+            _lastMoveFrom = Vector2Int.zero;
+            _lastMoveTo = Vector2Int.zero;
+
+            UpdateLastMove();
+        }
+
         void UpdateLastMove()
         {
             if (!_lastMoveActive)

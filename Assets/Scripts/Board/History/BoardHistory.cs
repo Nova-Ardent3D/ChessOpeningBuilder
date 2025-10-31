@@ -1,5 +1,6 @@
 using Board.BoardMarkers;
 using Board.History.Pairs;
+using MoveTrainer;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,6 +46,7 @@ namespace Board.History
         List<MovePair> _moves = new List<MovePair>();
         public BoardState _boardState;
         public BoardController _boardController;
+        public Trainer _trainer;
 
         public MoveIndexLabel moveIndexLabelPrefab;
         public MoveLabel moveLabelPrefab;
@@ -106,11 +108,6 @@ namespace Board.History
         public void SetBoardState(BoardState boardState)
         {
             _boardState = boardState;
-        }
-
-        public void SetBoardController(BoardController boardController)
-        {
-            _boardController = boardController;
         }
 
         public void GoToMove(int index, bool isWhite)
@@ -243,6 +240,59 @@ namespace Board.History
                 , 0
                 );
             _moveLabels.Last().Index = indexLabel;
+        }
+
+        public void ClearHistory()
+        {
+            _moves.Clear();
+            foreach (var moveLabel in _moveLabels)
+            {
+                if (moveLabel.Index != null)
+                    GameObject.Destroy(moveLabel.Index.gameObject);
+                if (moveLabel.White != null)
+                    GameObject.Destroy(moveLabel.White.gameObject);
+                if (moveLabel.Black != null)
+                    GameObject.Destroy(moveLabel.Black.gameObject);
+            }
+
+            _moveLabels.Clear();
+
+            _latestMove = new MoveView() { Index = 0, IsWhite = true };
+            _viewingMove = new MoveView() { Index = 0, IsWhite = true };
+            
+            _boardState.SetFEN(StartingFen);
+            _boardController.ClearAllHighlights();
+            
+            AddMovePair();
+        }
+
+        public void AddVariationToTrainer()
+        {
+            _trainer.AddVariation(GetMoves().Select(x => (x.ToString(), x.resultingFen)));
+        }
+
+        public IEnumerable<Move> GetMoves()
+        {
+            foreach (var movePair in _moves)
+            {
+                if (movePair.White != null)
+                {
+                    yield return movePair.White;
+                }
+                else
+                {
+                    yield break;
+                }
+
+                if (movePair.Black != null)
+                {
+                    yield return movePair.Black;
+                }
+                else
+                {
+                    yield break;
+                }
+            }
         }
     }
 }

@@ -208,6 +208,14 @@ namespace Board
             {
                 Debug.LogError("invalid position, missing king.");
             }
+
+            foreach (Piece piece in _pieces)
+            {
+                if (piece != null)
+                {
+                    piece.UpdateRotation(true);
+                }
+            }
         }
 
         public string GetFen()
@@ -306,11 +314,11 @@ namespace Board
         {
             try
             {
-                bool isCheck = false;
+                //bool isCheck = false;
                 if (notation.Last() == '+')
                 {
                     notation = notation.Remove(notation.Length - 1);
-                    isCheck = true;
+                    //isCheck = true;
                 }
 
                 PieceTypes? promotion = null;
@@ -357,10 +365,10 @@ namespace Board
                 File toFile = (File)(notation.Last() - 'a');
                 notation = notation.Substring(0, notation.Length - 1);
 
-                bool isTake = false;
+                //bool isTake = false;
                 if (notation.Contains('x'))
                 {
-                    isTake = true;
+                    //isTake = true;
                     notation = notation.Replace("x", "");
                 }
 
@@ -452,44 +460,10 @@ namespace Board
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Debug.LogError("Failed to parse move");
             }
-
-            /*
-            PieceTypes pieceType;
-            switch (notation[0])
-            {
-                case 'K': pieceType = PieceTypes.King; break;
-                case 'Q': pieceType = PieceTypes.Queen; break;
-                case 'R': pieceType = PieceTypes.Rook; break;
-                case 'B': pieceType = PieceTypes.Bishop; break;
-                case 'N': pieceType = PieceTypes.Knight; break;
-                default: pieceType = PieceTypes.Pawn; break;
-            }
-
-            List<Piece> pieces = new List<Piece>();
-            foreach (Piece piece in _pieces)
-            {
-                if (piece != null && piece.Type == pieceType && piece.IsWhite == isWhite)
-                {
-                    pieces.Add(piece);
-                }
-            }
-
-            if (pieceType == PieceTypes.Pawn)
-            {
-                Rank rank = (Rank)(notation.Last() - '1');
-                File file = (File)(notation[0] - 'a');
-
-                pieces = pieces.Where(x => x.GetMoves(this).Any(y => y.Rank == rank && y.File == file)).ToList();
-            }
-            else
-            {
-                
-            }
-            */
         }
 
         public void MovePiece(int fromX, int fromY, int toX, int toY, MoveType moveType, PieceTypes? promotion = null, bool playNoises = true, bool addToHistory = true)
