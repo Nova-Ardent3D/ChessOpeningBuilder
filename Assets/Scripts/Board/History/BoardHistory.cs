@@ -2,6 +2,7 @@ using Board.BoardMarkers;
 using Board.History.Pairs;
 using MoveTrainer;
 using NUnit.Framework;
+using SimpleFileBrowser;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
@@ -61,6 +62,9 @@ namespace Board.History
 
         private void Update()
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             if (Input.GetKeyDown(KeyCode.RightArrow))
             {
                 StepInOneMove();
@@ -244,6 +248,9 @@ namespace Board.History
 
         public void ClearHistory()
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             _moves.Clear();
             foreach (var moveLabel in _moveLabels)
             {

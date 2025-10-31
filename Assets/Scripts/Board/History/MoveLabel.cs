@@ -1,6 +1,7 @@
-using UnityEngine;
-using TMPro;
+using SimpleFileBrowser;
 using System;
+using TMPro;
+using UnityEngine;
 
 namespace Board.History
 {
@@ -21,6 +22,9 @@ namespace Board.History
 
         public void OnClick()
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             _callback();
         }
     }

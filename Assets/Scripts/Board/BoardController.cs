@@ -5,6 +5,7 @@ using Board.History;
 using Board.MouseClickData;
 using Board.Pieces;
 using Board.Pieces.Moves;
+using SimpleFileBrowser;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Overlays;
@@ -44,6 +45,8 @@ namespace Board.BoardMarkers
 
         Piece _pieceBeingAnimation;
 
+        [SerializeField] bool OpeningIsWhite = true;
+
         void Start()
         {
             if (this.gameObject.transform is RectTransform rectTransform)
@@ -69,6 +72,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             if (promotionModule.IsActive)
                 return;
 
@@ -111,6 +117,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerUp(PointerEventData eventData)
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             if (promotionModule.IsActive)
                 return;
 
@@ -160,6 +169,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerExit(PointerEventData eventData)
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             rightClickData.IsMouseDown = false;
             leftClickData.IsMouseDown = false;
 
@@ -168,6 +180,9 @@ namespace Board.BoardMarkers
 
         public void OnPointerMove(PointerEventData eventData)
         {
+            if (FileBrowser.IsOpen)
+                return;
+
             if (promotionModule.IsActive)
                 return;
 

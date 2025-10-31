@@ -3,6 +3,7 @@ using MoveTrainer.Move;
 using Board;
 using System.Collections.Generic;
 using System.Linq;
+using SimpleFileBrowser;
 
 namespace MoveTrainer
 {
@@ -18,7 +19,7 @@ namespace MoveTrainer
         MoveInformationDisplay CurrentMoveDisplay = null;
         List<MoveInformationDisplay> NextMovesDisplay = new List<MoveInformationDisplay>();
 
-        MoveInformation StartingMove = null;
+        TrainerData TrainerData = new TrainerData();
         MoveInformation CurrentMove = null;
 
         void CreateStartingMove()
@@ -28,7 +29,7 @@ namespace MoveTrainer
             moveInformation.MoveNotation = "Start Position";
 
             CurrentMove = moveInformation;
-            StartingMove = CurrentMove;
+            TrainerData.StartingMove = CurrentMove;
 
             UpdateViewedMove();
         }
@@ -68,7 +69,7 @@ namespace MoveTrainer
                     UpdateViewedMove();
                 });
                 nextMoveDisplay.transform.localPosition = new Vector3
-                    ( 0
+                    (0
                     , ((MoveInformationDisplayPrefab.transform as RectTransform).rect.height + 5) * (0.5f + i - CurrentMove.PossibleNextMoves.Count / 2f)
                     , 0
                     );
@@ -85,13 +86,13 @@ namespace MoveTrainer
 
         public void AddVariation(IEnumerable<(string move, string fen)> moveInfo)
         {
-            if (StartingMove == null)
+            if (TrainerData.StartingMove == null)
             {
                 CreateStartingMove();
             }
 
             bool brokenChain = false;
-            MoveInformation currentMove = StartingMove;
+            MoveInformation currentMove = TrainerData.StartingMove;
 
             foreach (var (move, fen) in moveInfo)
             {
@@ -116,6 +117,47 @@ namespace MoveTrainer
             }
 
             UpdateViewedMove();
+        }
+
+        public void Save()
+        {
+            if (FileBrowser.IsOpen)
+                return;
+
+            FileBrowser.SetFilters(true, new FileBrowser.Filter("Openings", ".open"));
+            FileBrowser.SetDefaultFilter(".open");
+            FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+            FileBrowser.ShowSaveDialog((paths) =>
+            {
+                Debug.Log($"Selected: {paths[0]}");
+                Debug.Log(TrainerData.Serialize(TrainerData));
+            }
+            , () =>
+            {
+                Debug.Log("Canceled");
+            }
+            , FileBrowser.PickMode.Files
+            , false, "C:\\Users", "MyOpening");
+        }
+
+        public void Load()
+        {
+            if (FileBrowser.IsOpen)
+                return;
+
+            FileBrowser.SetFilters(true, new FileBrowser.Filter("Openings", ".open"));
+            FileBrowser.SetDefaultFilter(".open");
+            FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+            FileBrowser.ShowLoadDialog((paths) =>
+            {
+                Debug.Log($"Selected: {paths[0]}");
+            }
+            , () =>
+            {
+                Debug.Log("Canceled");
+            }
+            , FileBrowser.PickMode.Files
+            , false, "C:\\Users", "MyOpening");
         }
     }
 }
