@@ -22,6 +22,7 @@ namespace Board.History
         public void SetMove(Move move)
         {
             label.text = move.ToString();
+            this.name = move.ToString();
         }
 
         public void OnClick()

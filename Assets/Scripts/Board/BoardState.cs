@@ -319,11 +319,11 @@ namespace Board
                 {
                     if (isWhite)
                     {
-                        MovePiece((int)_whiteKing.CurrentFile, (int)_whiteKing.CurrentRank, (int)Piece.File.C, (int)_whiteKing.CurrentRank, MoveType.Castle);
+                        MovePiece((int)_whiteKing.CurrentFile, (int)_whiteKing.CurrentRank, (int)Piece.File.C, (int)_whiteKing.CurrentRank, MoveType.Castle, null, playNoises, addToHistory);
                     }
                     else
                     {
-                        MovePiece((int)_blackKing.CurrentFile, (int)_blackKing.CurrentRank, (int)Piece.File.C, (int)_blackKing.CurrentRank, MoveType.Castle);
+                        MovePiece((int)_blackKing.CurrentFile, (int)_blackKing.CurrentRank, (int)Piece.File.C, (int)_blackKing.CurrentRank, MoveType.Castle, null, playNoises, addToHistory);
                     }
                     return;
                 }
@@ -332,11 +332,11 @@ namespace Board
                 {
                     if (isWhite)
                     {
-                        MovePiece((int)_whiteKing.CurrentFile, (int)_whiteKing.CurrentRank, (int)Piece.File.G, (int)_whiteKing.CurrentRank, MoveType.Castle);
+                        MovePiece((int)_whiteKing.CurrentFile, (int)_whiteKing.CurrentRank, (int)Piece.File.G, (int)_whiteKing.CurrentRank, MoveType.Castle, null, playNoises, addToHistory);
                     }
                     else
                     {
-                        MovePiece((int)_blackKing.CurrentFile, (int)_blackKing.CurrentRank, (int)Piece.File.G, (int)_blackKing.CurrentRank, MoveType.Castle);
+                        MovePiece((int)_blackKing.CurrentFile, (int)_blackKing.CurrentRank, (int)Piece.File.G, (int)_blackKing.CurrentRank, MoveType.Castle, null, playNoises, addToHistory);
                     }
                     return;
                 }
