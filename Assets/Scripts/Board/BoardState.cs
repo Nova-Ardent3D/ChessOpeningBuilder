@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using Board.BoardMarkers.Promotion;
 using System;
+using Unity.VisualScripting;
 
 namespace Board
 {
@@ -314,6 +315,33 @@ namespace Board
         {
             try
             {
+                if (notation == "O-O-O")
+                {
+                    if (isWhite)
+                    {
+                        MovePiece((int)_whiteKing.CurrentFile, (int)_whiteKing.CurrentRank, (int)Piece.File.C, (int)_whiteKing.CurrentRank, MoveType.Castle);
+                    }
+                    else
+                    {
+                        MovePiece((int)_blackKing.CurrentFile, (int)_blackKing.CurrentRank, (int)Piece.File.C, (int)_blackKing.CurrentRank, MoveType.Castle);
+                    }
+                    return;
+                }
+                
+                if (notation == "O-O")
+                {
+                    if (isWhite)
+                    {
+                        MovePiece((int)_whiteKing.CurrentFile, (int)_whiteKing.CurrentRank, (int)Piece.File.G, (int)_whiteKing.CurrentRank, MoveType.Castle);
+                    }
+                    else
+                    {
+                        MovePiece((int)_blackKing.CurrentFile, (int)_blackKing.CurrentRank, (int)Piece.File.G, (int)_blackKing.CurrentRank, MoveType.Castle);
+                    }
+                    return;
+                }
+                
+
                 //bool isCheck = false;
                 if (notation.Last() == '+')
                 {

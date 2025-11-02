@@ -32,7 +32,11 @@ namespace MoveTrainer
 
         public TrainerData TrainerData { get; private set; }
         public bool IsRunning { get; private set; }
-        public bool IsUsersTurn { get => boardController.BoardState.CurrentMove == Board.BoardState.Move.White && TrainerData.IsWhiteTrainer; }
+        public bool IsUsersTurn 
+        { 
+            get => boardController.BoardState.CurrentMove == Board.BoardState.Move.White && TrainerData.IsWhiteTrainer
+                || boardController.BoardState.CurrentMove == Board.BoardState.Move.Black && !TrainerData.IsWhiteTrainer;
+        }
 
         private void Start()
         {
@@ -66,10 +70,20 @@ namespace MoveTrainer
                 obj.SetActive(true);
             }
 
+            if (!trainerData.IsWhiteTrainer)
+            {
+                boardController.SetBoardRotation(true);
+            }
+
             TrainerData = trainerData;
             IsRunning = true;
 
             SetNextVariation();
+
+            if (!trainerData.IsWhiteTrainer)
+            {
+                StartCoroutine(BotMove());
+            }
         }
 
         public void CompleteRun()
@@ -112,7 +126,7 @@ namespace MoveTrainer
             currentMove.TimesCorrect = 0;
             currentMove.TimesGuessed = 0;
 
-            if (depth == trainerData.Depth)
+            if (depth == trainerData.Depth && trainerData.DepthType == TrainerData.TrainerType.DepthFirst)
             {
                 Variations.Add(GetMovesToLeaf(currentMove));
                 return;
@@ -120,7 +134,14 @@ namespace MoveTrainer
 
             if (currentMove.PossibleNextMoves.Count == 0)
             {
-                Variations.Add(GetMovesToLeaf(currentMove));
+                if (trainerData.DepthType == TrainerData.TrainerType.BreadthFirst && Variations.Count == trainerData.Depth && trainerData.Depth > 0)
+                {
+                    return;
+                }
+                else
+                {
+                    Variations.Add(GetMovesToLeaf(currentMove));
+                }
                 return;
             }
 

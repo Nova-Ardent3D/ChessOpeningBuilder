@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using static Board.BoardMarkers.Highlighting;
 
 namespace Board.BoardMarkers
@@ -263,7 +264,12 @@ namespace Board.BoardMarkers
 
         public void RotateBoard()
         {
-            _isRotated = ! _isRotated;
+            SetBoardRotation(!_isRotated);
+        }
+
+        public void SetBoardRotation(bool rotation)
+        {
+            _isRotated = rotation;
             if (!_isRotated)
                 _transform.rotation = Quaternion.Euler(0, 0, 0);
             else
