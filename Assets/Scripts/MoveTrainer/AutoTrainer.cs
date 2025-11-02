@@ -98,7 +98,7 @@ namespace MoveTrainer
         {
             boardHistory.ClearHistory();
 
-            int next = Random.Range(0, Variations.Count - 1);
+            int next = Random.Range(0, Variations.Count);
             CurrentVariation = Variations[next];
             Variations.RemoveAt(next);
 

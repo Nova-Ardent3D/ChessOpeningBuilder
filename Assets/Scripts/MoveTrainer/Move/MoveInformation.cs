@@ -8,7 +8,6 @@ namespace MoveTrainer.Move
     {
         public MoveInformation ParentMove;
         public List<MoveInformation> PossibleNextMoves = new List<MoveInformation>();
-        public string Fen;
         public string MoveNotation;
         public int TimesGuessed = 0;
         public int TimesCorrect = 0;
@@ -21,7 +20,7 @@ namespace MoveTrainer.Move
         public IEnumerable<string> Serialize(int depth)
         {
             depth++;
-            yield return new string('\t', depth) + "-FEN: " + Fen;
+            yield return new string('\t', depth) + "-: ";
             yield return new string('\t', depth) + " Move: " + MoveNotation;
             yield return new string('\t', depth) + " Count: " + PossibleNextMoves.Count;
 
@@ -37,15 +36,8 @@ namespace MoveTrainer.Move
         public void Deserialize(IEnumerator<string> contents)
         {
             contents.MoveNext();
-            string fenline = contents.Current.Trim();
-            if (fenline.StartsWith("-FEN: "))
-            {
-                Fen = fenline.Split(new string[] { "-FEN:" }, StringSplitOptions.None)[1].Trim();
-            }
-            else
-            {
-                throw new Exception("Invalid format: Expected FEN line.");
-            }
+            string firstline = contents.Current.Trim();
+
 
             contents.MoveNext();
             string moveline = contents.Current.Trim();

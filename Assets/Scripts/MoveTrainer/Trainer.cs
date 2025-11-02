@@ -1,4 +1,6 @@
 using Board;
+using Board.BoardMarkers;
+using Board.History;
 using MoveTrainer.Move;
 using SimpleFileBrowser;
 using System.Collections.Generic;
@@ -7,16 +9,20 @@ using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using static MoveTrainer.TrainerData;
 
 namespace MoveTrainer
 {
     public class Trainer : MonoBehaviour
     {
+        public BoardController BoardController;
+        public BoardHistory BoardHistory;
         public AutoTrainer AutoTrainer;
 
         public MoveInformationDisplay MoveInformationDisplayPrefab;
         public TMP_Dropdown TypeDropDown;
         public TMP_InputField DepthInputField;
+        public TMP_Dropdown DepthTypeDropDown;
 
         public GameObject PreviousMoveContainer;
         public GameObject CurrentMoveContainer;
@@ -32,7 +38,6 @@ namespace MoveTrainer
         void CreateStartingMove()
         {
             MoveInformation moveInformation = new MoveInformation();
-            moveInformation.Fen = BoardState.DefaultFEN;
             moveInformation.MoveNotation = "Start Position";
 
             CurrentMove = moveInformation;
@@ -66,6 +71,33 @@ namespace MoveTrainer
 
             CurrentMoveDisplay = MakeMoveDisplay(CurrentMove, CurrentMoveContainer.transform);
             CurrentMoveDisplay.name = "CurrentMoveDisplay";
+            CurrentMoveDisplay.SetCallBack(x =>
+            {
+                BoardHistory.ClearHistory();
+
+                List<MoveInformation> moves = new List<MoveInformation>();
+                MoveInformation current = x;
+                while (current != null)
+                {
+                    moves.Add(current);
+                    current = current.ParentMove;
+                }
+
+                moves.Reverse();
+                bool isWhite = true;
+                foreach (var move in moves.Skip(1))
+                {
+                    BoardController.BoardState.MovePiece(move.MoveNotation, isWhite, false, true);
+                    isWhite = !isWhite;
+                }
+
+                Board.History.Move lastMove = BoardHistory.GetLatestMove();
+                BoardController.highlighting.SetLastMove
+                    ( new Vector2Int((int)lastMove.FromFile, (int)lastMove.FromRank)
+                    , new Vector2Int((int)lastMove.ToFile, (int)lastMove.ToRank)
+                    );
+            });
+
             for (int i = 0; i < CurrentMove.PossibleNextMoves.Count; i++)
             {
                 var nextMove = CurrentMove.PossibleNextMoves[i];
@@ -110,9 +142,9 @@ namespace MoveTrainer
 
             foreach (var (move, fen) in moveInfo)
             {
-                if (!brokenChain && currentMove.PossibleNextMoves.Any(x => x.Fen == fen && x.MoveNotation == move))
+                if (!brokenChain && currentMove.PossibleNextMoves.Any(x => x.MoveNotation == move))
                 {
-                    currentMove = currentMove.PossibleNextMoves.First(x => x.Fen == fen && x.MoveNotation == move);
+                    currentMove = currentMove.PossibleNextMoves.First(x => x.MoveNotation == move);
                 }
                 else
                 {
@@ -121,7 +153,6 @@ namespace MoveTrainer
                     MoveInformation newMoveInformation = new MoveInformation()
                     {
                         ParentMove = currentMove,
-                        Fen = fen,
                         MoveNotation = move,
                     };
 
@@ -173,6 +204,10 @@ namespace MoveTrainer
                 {
                     TrainerData = TrainerData.Deserialize(ReadStreamer(reader).GetEnumerator());
                     CurrentMove = TrainerData.StartingMove;
+
+                    TypeDropDown.value = TrainerData.IsWhiteTrainer ? 0 : 1;
+                    DepthInputField.text = TrainerData.Depth.ToString();
+                    DepthTypeDropDown.value = (int)TrainerData.DepthType;
                 }
 
                 UpdateViewedMove();
@@ -211,6 +246,11 @@ namespace MoveTrainer
                 DepthInputField.text = "";
                 TrainerData.Depth = -1;
             }
+        }
+
+        public void OnDepthTypeChanged()
+        {
+            TrainerData.DepthType = (TrainerType)DepthTypeDropDown.value;
         }
 
         IEnumerable<string> ReadStreamer(StreamReader reader)
