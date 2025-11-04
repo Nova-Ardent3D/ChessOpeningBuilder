@@ -9,6 +9,7 @@ using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using static MoveTrainer.AutoTrainer;
 using static MoveTrainer.TrainerData;
 
 namespace MoveTrainer
@@ -93,10 +94,13 @@ namespace MoveTrainer
                 }
 
                 Board.History.Move lastMove = BoardHistory.GetLatestMove();
-                BoardController.highlighting.SetLastMove
-                    ( new Vector2Int((int)lastMove.FromFile, (int)lastMove.FromRank)
-                    , new Vector2Int((int)lastMove.ToFile, (int)lastMove.ToRank)
-                    );
+                if (lastMove != null)
+                {
+                    BoardController.highlighting.SetLastMove
+                        ( new Vector2Int((int)lastMove.FromFile, (int)lastMove.FromRank)
+                        , new Vector2Int((int)lastMove.ToFile, (int)lastMove.ToRank)
+                        );
+                }
             });
 
             for (int i = 0; i < CurrentMove.PossibleNextMoves.Count; i++)
@@ -164,6 +168,8 @@ namespace MoveTrainer
                 CreateStartingMove();
             }
 
+            List<(string move, string hint1, string hint2)> test = moveInfo.ToList();
+
             bool brokenChain = false;
             MoveInformation currentMove = TrainerData.StartingMove;
 
@@ -203,6 +209,11 @@ namespace MoveTrainer
             FileBrowser.AddQuickLink("Users", "C:\\Users", null);
             FileBrowser.ShowSaveDialog((paths) =>
             {
+                if (TrainerData.StartingMove == null)
+                {
+                    return;
+                }
+
                 using (StreamWriter writer = new StreamWriter(paths[0], false))
                 {
                     foreach (var line in TrainerData.Serialize(TrainerData))
@@ -250,6 +261,67 @@ namespace MoveTrainer
             , false, "C:\\Users", "MyOpening");
         }
 
+        public void LoadAndCombine()
+        {
+            if (FileBrowser.IsOpen)
+                return;
+
+            FileBrowser.SetFilters(true, new FileBrowser.Filter("Openings", ".open"));
+            FileBrowser.SetDefaultFilter(".open");
+            FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+            FileBrowser.ShowLoadDialog((paths) =>
+            {
+                using (StreamReader reader = new StreamReader(paths[0]))
+                {
+                    var trainerData = TrainerData.Deserialize(ReadStreamer(reader).GetEnumerator());
+
+                    List<List<MoveInformation>> moveInformations = new List<List<MoveInformation>>();
+                    GetVariations(trainerData.StartingMove, moveInformations);
+                    
+                    foreach (var variation in moveInformations)
+                    {
+                        AddVariation(variation.Skip(1).Select(x => (x.MoveNotation, x.HintOne, x.HintTwo)));
+                    }
+                }
+
+                UpdateViewedMove();
+            }
+            , () =>
+            {
+                Debug.Log("Canceled");
+            }
+            , FileBrowser.PickMode.Files
+            , false, "C:\\Users", "MyOpening"
+            , title : "Load and Combine");
+        }
+
+        void GetVariations(MoveInformation move, List<List<MoveInformation>> moveInformations)
+        {
+            if (move.PossibleNextMoves.Count == 0)
+            {
+                moveInformations.Add(GetMovesToLeaf(move));
+            }
+
+            foreach (var nextMove in move.PossibleNextMoves)
+            {
+                GetVariations(nextMove, moveInformations);
+            }
+        }
+
+        List<MoveInformation> GetMovesToLeaf(MoveInformation leaf)
+        {
+            List<MoveInformation> moves = new List<MoveInformation>();
+            MoveInformation current = leaf;
+            while (current != null)
+            {
+                moves.Add(current);
+                current = current.ParentMove;
+            }
+
+            moves.Reverse();
+            return moves;
+        }
+
         public void Run()
         {
             AutoTrainer.Run(TrainerData);
@@ -285,9 +357,17 @@ namespace MoveTrainer
 
         public void DeleteCurrentMoveAndChildren()
         {
-            var move = CurrentMove;
-            CurrentMove = CurrentMove.ParentMove;
-            CurrentMove.PossibleNextMoves.Remove(move);
+            if (CurrentMove.ParentMove != null)
+            {
+                var move = CurrentMove;
+                CurrentMove = CurrentMove.ParentMove;
+                CurrentMove.PossibleNextMoves.Remove(move);
+            }
+            else
+            {
+                CurrentMove.PossibleNextMoves.Clear();
+            }
+
             UpdateViewedMove();
         }
 

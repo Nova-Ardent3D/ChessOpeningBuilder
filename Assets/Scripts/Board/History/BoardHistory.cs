@@ -371,6 +371,12 @@ namespace Board.History
 
         public Move GetLatestMove()
         {
+            if (_moves.Count == 1 && _moves[0].White == null)
+            {
+                ClearHistory();
+                return null;
+            }
+
             if (_latestMove.IsWhite)
             {
                 return _moves[_latestMove.Index].White;
