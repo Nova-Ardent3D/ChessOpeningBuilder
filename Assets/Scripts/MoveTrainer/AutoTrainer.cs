@@ -34,6 +34,9 @@ namespace MoveTrainer
 
         public List<Variation> Variations = new List<Variation>();
 
+        public bool IsRunningFailedVariations = false;
+        public List<Variation> FailedVaritions = new List<Variation>();
+
         public TrainerData TrainerData { get; private set; }
         public bool IsRunning { get; private set; }
         public bool IsUsersTurn 
@@ -80,13 +83,12 @@ namespace MoveTrainer
                 obj.SetActive(true);
             }
 
-            if (!trainerData.IsWhiteTrainer)
-            {
-                boardController.SetBoardRotation(true);
-            }
+
+            boardController.SetBoardRotation(!trainerData.IsWhiteTrainer);
 
             TrainerData = trainerData;
             IsRunning = true;
+            IsRunningFailedVariations = false;
 
             SetNextVariation();
         }
@@ -113,6 +115,8 @@ namespace MoveTrainer
 
             nextVariationButton.SetActive(false);
             textMeshProUGUI.gameObject.SetActive(false);
+
+            IsRunningFailedVariations = true;
         }
 
         public void SetNextVariation()
@@ -134,7 +138,15 @@ namespace MoveTrainer
             nextVariationButton.SetActive(false);
             
             CurrentVariationIndex++;
-            textMeshProUGUI.text = $"Variation {CurrentVariationIndex} / {TotalVariationCount}";
+
+            if (IsRunningFailedVariations)
+            {
+                textMeshProUGUI.text = $"Failed Variation {CurrentVariationIndex} / {TotalVariationCount}";
+            }
+            else
+            {
+                textMeshProUGUI.text = $"Variation {CurrentVariationIndex} / {TotalVariationCount}";
+            }
             textMeshProUGUI.gameObject.SetActive(true);
 
             if (!TrainerData.IsWhiteTrainer)
@@ -278,9 +290,46 @@ namespace MoveTrainer
 
         void VariationComplete()
         {
+            if (TrainerData.Method == TrainerData.TrainingMethod.ReplayFailedMoves && !IsRunningFailedVariations)
+            {
+                if (CurrentVariation.IsMoveCorrect.Any(x => !x))
+                {
+                    FailedVaritions.Add(CurrentVariation);
+                }
+            }
+
+            if (TrainerData.Method == TrainerData.TrainingMethod.RepeatVariationOnFailed)
+            {
+                if (!IsRunningFailedVariations && CurrentVariation.IsMoveCorrect.Any(x => !x))
+                {
+                    CurrentMove = 1;
+                    boardHistory.ClearHistory();
+                    IsRunningFailedVariations = true;
+
+                    if (!TrainerData.IsWhiteTrainer)
+                    {
+                        StartCoroutine(BotMove());
+                    }
+                    return;
+                }
+                IsRunningFailedVariations = false;
+            }
+
             if (Variations.Count == 0)
             {
-                CompleteRun();
+                if (TrainerData.Method == TrainerData.TrainingMethod.ReplayFailedMoves && !IsRunningFailedVariations)
+                {
+                    Variations.AddRange(FailedVaritions);
+                    FailedVaritions.Clear();
+                    IsRunningFailedVariations = true;
+                    CurrentVariationIndex = 0;
+                    TotalVariationCount = Variations.Count;
+                    nextVariationButton.SetActive(true);
+                }
+                else
+                {
+                    CompleteRun();
+                }
             }
             else
             {

@@ -88,6 +88,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b6e5b1fbcc0aac4a9cc7ec5072bf76f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  BaseColor: {r: 0.41568628, g: 0.4117647, b: 0.4117647, a: 1}
+  WhiteColor: {r: 0.45882353, g: 0.45882353, b: 0.45882353, a: 1}
+  BlackColor: {r: 0.3018868, g: 0.3018868, b: 0.3018868, a: 1}
+  Background: {fileID: 6524468221764183904}
   MoveNameText: {fileID: 35001786274134321}
   PercentageBar: {fileID: 6817014585233982401}
 --- !u!114 &6818974723071142404

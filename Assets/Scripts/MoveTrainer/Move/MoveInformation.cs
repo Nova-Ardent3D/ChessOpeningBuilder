@@ -13,6 +13,7 @@ namespace MoveTrainer.Move
         public string HintTwo;
         public int TimesGuessed = 0;
         public int TimesCorrect = 0;
+        public bool IsWhite;
 
         public override string ToString()
         {

@@ -19,12 +19,20 @@ namespace MoveTrainer
             ByBranch
         }
 
-        public const int Version = 2;
+        public enum TrainingMethod
+        {
+            RunOnce,
+            ReplayFailedMoves,
+            RepeatVariationOnFailed,
+        }
+
+        public const int Version = 3;
 
         public bool IsWhiteTrainer = true;
         public int Depth = -1;
         public TrainerType DepthType = TrainerType.DepthFirst;
         public StatsView StatsDisplay = StatsView.ByMove;
+        public TrainingMethod Method = TrainingMethod.RunOnce;
         public MoveInformation StartingMove;
 
         public IEnumerable<string> Serialize(TrainerData trainerData)
@@ -34,6 +42,7 @@ namespace MoveTrainer
             yield return trainerData.Depth.ToString();
             yield return trainerData.DepthType.ToString();
             yield return trainerData.StatsDisplay.ToString();
+            yield return trainerData.Method.ToString();
 
             foreach (var line in trainerData.StartingMove.Serialize(0))
             {
@@ -72,9 +81,40 @@ namespace MoveTrainer
                 trainerData.StatsDisplay = (StatsView)System.Enum.Parse(typeof(StatsView), contents.Current.Trim());
             }
 
+            if (version <= 2)
+            {
+                trainerData.Method = TrainingMethod.RunOnce;
+            }
+            else
+            {
+                contents.MoveNext();
+                Debug.Log(contents.Current);
+                trainerData.Method = (TrainingMethod)System.Enum.Parse(typeof(TrainingMethod), contents.Current.Trim());
+            }
+
             trainerData.StartingMove = new MoveInformation();
             trainerData.StartingMove.Deserialize(contents);
+
+            SetMoveColors(trainerData.StartingMove);
+
             return trainerData;
+        }
+
+        public static void SetMoveColors(MoveInformation move)
+        {
+            if (move.ParentMove == null)
+            {
+                move.IsWhite = false;
+            }
+            else
+            {
+                move.IsWhite = !move.ParentMove.IsWhite;
+            }
+
+            foreach (var child in move.PossibleNextMoves)
+            {
+                SetMoveColors(child);
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ namespace MoveTrainer
         public TMP_InputField DepthInputField;
         public TMP_Dropdown DepthTypeDropDown;
         public TMP_Dropdown StatsTypeDropDown;
+        public TMP_Dropdown TrainingMethod;
 
         public GameObject PreviousMoveContainer;
         public GameObject CurrentMoveContainer;
@@ -147,6 +148,16 @@ namespace MoveTrainer
                     nextMove.PercentageBar.Percentage = 1.0f * timesCorrect / timesGuessed;
                 }
             }
+
+            if (moveInformation.IsWhite)
+            {
+                nextMove.SetAsWhiteTile();
+            }
+            else
+            {
+                nextMove.SetAsBlackTile();
+            }
+
             return nextMove;
         }
 
@@ -196,6 +207,7 @@ namespace MoveTrainer
                 }
             }
 
+            TrainerData.SetMoveColors(TrainerData.StartingMove);
             UpdateViewedMove();
         }
 
@@ -249,6 +261,7 @@ namespace MoveTrainer
                     DepthInputField.text = TrainerData.Depth.ToString();
                     DepthTypeDropDown.value = (int)TrainerData.DepthType;
                     StatsTypeDropDown.value = (int)TrainerData.StatsDisplay;
+                    TrainingMethod.value = (int)TrainerData.Method;
                 }
 
                 UpdateViewedMove();
@@ -353,6 +366,11 @@ namespace MoveTrainer
         public void OnDepthTypeChanged()
         {
             TrainerData.DepthType = (TrainerType)DepthTypeDropDown.value;
+        }
+
+        public void OnTrainingMethodChanged()
+        {
+            TrainerData.Method = (TrainingMethod)TrainingMethod.value;
         }
 
         public void DeleteCurrentMoveAndChildren()
