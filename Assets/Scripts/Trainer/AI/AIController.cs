@@ -72,13 +72,13 @@ namespace Trainer.AI
             }
         }
 
-        public void StartTraining(TrainerData trainerData)
+        public void StartTraining(TrainerData trainerData, TrainerMoveInformation startingMove = null)
         {
             TurnOffNonTrainingModules();
 
             TrainerData = trainerData;
             
-            BuildTrainingSession();
+            BuildTrainingSession(startingMove);
             if (CurrentTrainingSession.Variations == null || CurrentTrainingSession.Variations.Count == 0)
             {
                 return;
@@ -132,12 +132,14 @@ namespace Trainer.AI
             }
         }
 
-        void BuildTrainingSession()
+        void BuildTrainingSession(TrainerMoveInformation startingMove = null)
         {
             CurrentTrainingSession = new TrainingSession();
             CurrentTrainingSession.Variations = new List<Variation>();
             CurrentTrainingSession.FailedVariations = new List<Variation>();
-            BuildVariations(TrainerData.StartingMove, 0);
+            
+            BuildVariations(startingMove ?? TrainerData.StartingMove, 0);
+            
             CurrentTrainingSession.Variations.Shuffle();
         }
 

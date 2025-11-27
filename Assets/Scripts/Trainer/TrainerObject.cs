@@ -43,6 +43,11 @@ namespace Trainer
             _aiController.StartTraining(_trainerOptionsObject.TrainerData);
         }
 
+        public void RunFrom()
+        {
+            _aiController.StartTraining(_trainerOptionsObject.TrainerData, _currentMove);
+        }
+
         public void UpdateViewedMove(TrainerMoveInformation trainerMoveInformation)
         {
             if (trainerMoveInformation == null)
