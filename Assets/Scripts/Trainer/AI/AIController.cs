@@ -63,6 +63,7 @@ namespace Trainer.AI
 
         public int _marathonIndex = 0;
         public int _variationDepth = 0;
+        public bool _marathonIndexWasFailed = false;
 
         bool _buildingNewSession = false;
 
@@ -152,6 +153,7 @@ namespace Trainer.AI
             CurrentTrainingSession = new TrainingSession();
             CurrentTrainingSession.Variations = new List<Variation>();
             CurrentTrainingSession.FailedVariations = new List<Variation>();
+            CurrentTrainingSession.Index = 0;
 
             _variationDepth = 0;
             
@@ -295,10 +297,12 @@ namespace Trainer.AI
         {
             StopCoroutine(_runner);
 
-            if (CurrentTrainingSession.Variations.Any(x => !x.WasPerfect))
+            if (_marathonIndexWasFailed)
             {
                 _marathonIndex--;
             }
+
+            _marathonIndexWasFailed = false;
             BuildTrainingSession();
             
             if (IsTrainingActive)
@@ -350,6 +354,8 @@ namespace Trainer.AI
 
                 _boardHistoryObject.RemoveLatestMove();
                 _boardHistoryObject.MarkLabelAsIncorrect(variation.CurrentMoveIndex);
+
+                _marathonIndexWasFailed = true;
             }
         }
 
@@ -420,6 +426,7 @@ namespace Trainer.AI
                 currentTrainerMove.TimesGuessed++;
                 variation.WasPerfect = false;
                 HasUsedHint = true;
+                _marathonIndexWasFailed = true;
             }
             else
             {
@@ -431,7 +438,9 @@ namespace Trainer.AI
                 {
                     currentTrainerMove.TimesGuessed++;
                 }
+
                 HasUsedBothHints = true;
+                _marathonIndexWasFailed = true;
             }
         }
     }
