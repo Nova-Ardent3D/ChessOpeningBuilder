@@ -642,7 +642,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &176748492
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1054,12 +1054,36 @@ PrefabInstance:
       value: Variations Type
       objectReference: {fileID: 0}
     - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
+      propertyPath: m_Options.m_Options.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
       propertyPath: m_Options.m_Options.Array.data[0].m_Text
       value: By Complete Variation
       objectReference: {fileID: 0}
     - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
       propertyPath: m_Options.m_Options.Array.data[1].m_Text
       value: By Move Count
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
+      propertyPath: m_Options.m_Options.Array.data[2].m_Text
+      value: Marathon Mode
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
+      propertyPath: m_Options.m_Options.Array.data[2].m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
+      propertyPath: m_Options.m_Options.Array.data[2].m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
+      propertyPath: m_Options.m_Options.Array.data[2].m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
+      propertyPath: m_Options.m_Options.Array.data[2].m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3680232186381787066, guid: d7737ea4dbf6b1a40abac5e7b6d562ec, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target

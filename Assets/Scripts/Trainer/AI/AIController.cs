@@ -51,6 +51,8 @@ namespace Trainer.AI
             public int Index;
         }
 
+        TrainerMoveInformation _startingMove = null;
+
         public TrainerData TrainerData;
         public bool IsTrainingActive = false;
         public TrainingSession CurrentTrainingSession;
@@ -58,6 +60,11 @@ namespace Trainer.AI
         public bool HasUsedHint = false;
         public bool HasUsedBothHints = false;
         Coroutine _runner;
+
+        public int _marathonIndex = 0;
+        public int _variationDepth = 0;
+
+        bool _buildingNewSession = false;
 
         private void Start()
         {
@@ -77,8 +84,13 @@ namespace Trainer.AI
             TurnOffNonTrainingModules();
 
             TrainerData = trainerData;
-            
-            BuildTrainingSession(startingMove);
+
+            _startingMove = startingMove;
+
+            _variationDepth = 0;
+            _marathonIndex = 1;
+
+            BuildTrainingSession();
             if (CurrentTrainingSession.Variations == null || CurrentTrainingSession.Variations.Count == 0)
             {
                 return;
@@ -99,7 +111,10 @@ namespace Trainer.AI
             CurrentTrainingSession = new TrainingSession();
             IsTrainingActive = false;
 
-            StopCoroutine(_runner);
+            if (_runner != null)
+            {
+                StopCoroutine(_runner);
+            }
         }
 
         void TurnOffNonTrainingModules()
@@ -132,26 +147,45 @@ namespace Trainer.AI
             }
         }
 
-        void BuildTrainingSession(TrainerMoveInformation startingMove = null)
+        void BuildTrainingSession()
         {
             CurrentTrainingSession = new TrainingSession();
             CurrentTrainingSession.Variations = new List<Variation>();
             CurrentTrainingSession.FailedVariations = new List<Variation>();
+
+            _variationDepth = 0;
             
-            BuildVariations(startingMove ?? TrainerData.StartingMove, 0);
-            
+            if (TrainerData.DepthType == TrainerData.TrainerType.MarathonMode)
+            {
+                _marathonIndex++;
+                BuildVariations(_startingMove ?? TrainerData.StartingMove, 0);
+
+                if (_marathonIndex > _variationDepth)
+                {
+                    StopTraining();
+                    return;
+                }
+            }
+            else
+            {
+                BuildVariations(_startingMove ?? TrainerData.StartingMove, 0);
+            }
+
             CurrentTrainingSession.Variations.Shuffle();
         }
 
         void BuildVariations(TrainerMoveInformation trainerMoveInformation, int depth)
         {
+            _variationDepth = Math.Max(_variationDepth, depth);
+
             trainerMoveInformation.TimesCorrect = 0;
             trainerMoveInformation.TimesGuessed = 0;
 
             trainerMoveInformation.VariationTimesGuessed = 0;
             trainerMoveInformation.VariationTimesCorrect = 0;
 
-            if (depth == TrainerData.Depth && TrainerData.DepthType == TrainerData.TrainerType.ByMoveCount)
+            if ((depth == TrainerData.Depth && (TrainerData.DepthType == TrainerData.TrainerType.ByMoveCount || TrainerData.DepthType == TrainerData.TrainerType.MarathonMode))
+                || (depth == _marathonIndex && TrainerData.DepthType == TrainerData.TrainerType.MarathonMode))
             {
                 CurrentTrainingSession.Variations.Add(new Variation()
                 {
@@ -224,7 +258,14 @@ namespace Trainer.AI
                 }
                 else
                 {
-                    StopTraining();
+                    if (TrainerData.DepthType == TrainerData.TrainerType.MarathonMode)
+                    {
+                        LoadNextDepthForMarathon();
+                    }
+                    else
+                    {
+                        StopTraining();
+                    }
                 }
             }
             else
@@ -237,10 +278,34 @@ namespace Trainer.AI
         {
             _boardHistoryObject.ClearHistory();
 
-            _CurrentVariationText.text = $"Variation {CurrentTrainingSession.Index + 1} / {CurrentTrainingSession.Variations.Count}";
+            if (TrainerData.DepthType == TrainerData.TrainerType.MarathonMode)
+            {
+                _CurrentVariationText.text = $"Marathon Depth {_marathonIndex}\nVariation {CurrentTrainingSession.Index + 1} / {CurrentTrainingSession.Variations.Count}";
+            }
+            else
+            {
+                _CurrentVariationText.text = $"Variation {CurrentTrainingSession.Index + 1} / {CurrentTrainingSession.Variations.Count}";
+            }
             CurrentTrainingSession.CurrentVariation = CurrentTrainingSession.Variations[CurrentTrainingSession.Index];
             CurrentTrainingSession.CurrentVariation.WasPerfect = true;
             CurrentTrainingSession.CurrentVariation.CurrentMoveIndex = 0;
+        }
+
+        void LoadNextDepthForMarathon()
+        {
+            StopCoroutine(_runner);
+
+            if (CurrentTrainingSession.Variations.Any(x => !x.WasPerfect))
+            {
+                _marathonIndex--;
+            }
+            BuildTrainingSession();
+            
+            if (IsTrainingActive)
+            {
+                SetVariation();
+                _runner = StartCoroutine(Run());
+            }
         }
 
         void OnPlayerMoved()
