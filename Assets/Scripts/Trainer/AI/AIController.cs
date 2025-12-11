@@ -156,7 +156,9 @@ namespace Trainer.AI
             CurrentTrainingSession.Index = 0;
 
             _variationDepth = 0;
-            
+
+            _marathonIndexWasFailed = false;
+
             if (TrainerData.DepthType == TrainerData.TrainerType.MarathonMode)
             {
                 _marathonIndex++;
@@ -302,7 +304,6 @@ namespace Trainer.AI
                 _marathonIndex--;
             }
 
-            _marathonIndexWasFailed = false;
             BuildTrainingSession();
             
             if (IsTrainingActive)
