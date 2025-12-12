@@ -89,7 +89,7 @@ namespace Trainer.AI
             _startingMove = startingMove;
 
             _variationDepth = 0;
-            _marathonIndex = 1;
+            _marathonIndex = Mathf.Max(trainerData.Depth, 1);
 
             BuildTrainingSession();
             if (CurrentTrainingSession.Variations == null || CurrentTrainingSession.Variations.Count == 0)
@@ -188,7 +188,7 @@ namespace Trainer.AI
             trainerMoveInformation.VariationTimesGuessed = 0;
             trainerMoveInformation.VariationTimesCorrect = 0;
 
-            if ((depth == TrainerData.Depth && (TrainerData.DepthType == TrainerData.TrainerType.ByMoveCount || TrainerData.DepthType == TrainerData.TrainerType.MarathonMode))
+            if ((depth == TrainerData.Depth && TrainerData.DepthType == TrainerData.TrainerType.ByMoveCount)
                 || (depth == _marathonIndex && TrainerData.DepthType == TrainerData.TrainerType.MarathonMode))
             {
                 CurrentTrainingSession.Variations.Add(new Variation()
