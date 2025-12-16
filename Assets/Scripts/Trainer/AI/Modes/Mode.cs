@@ -15,6 +15,7 @@ namespace Trainer.AI.Modes
         {
             public int CurrentMoveIndex = 0;
             public bool WasPerfect = true;
+            public bool WasPerfectThisIteration = true;
             public List<TrainerMoveInformation> MoveList;
         }
 
@@ -71,6 +72,7 @@ namespace Trainer.AI.Modes
         public virtual void MarkFailure()
         {
             CurrentTrainingSession.CurrentVariation.WasPerfect = false;
+            CurrentTrainingSession.CurrentVariation.WasPerfectThisIteration = false;
         }
 
         public abstract void BuildVariations(TrainerMoveInformation trainerMoveInformation, int depth);

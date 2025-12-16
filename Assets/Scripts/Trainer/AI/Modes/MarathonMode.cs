@@ -69,7 +69,8 @@ namespace Trainer.AI.Modes
             {
                 CurrentTrainingSession.Variations.Add(new Variation()
                 {
-                    WasPerfect = false,
+                    WasPerfect = true,
+                    WasPerfectThisIteration = true,
                     MoveList = trainerMoveInformation.GetMoveChain()
                 });
             }
@@ -77,7 +78,8 @@ namespace Trainer.AI.Modes
             {
                 CurrentTrainingSession.Variations.Add(new Variation()
                 {
-                    WasPerfect = false,
+                    WasPerfect = true,
+                    WasPerfectThisIteration = true,
                     MoveList = trainerMoveInformation.GetMoveChain()
                 });
             }
