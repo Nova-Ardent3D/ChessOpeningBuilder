@@ -26,6 +26,10 @@ namespace Trainer.Options
         public ReactiveOption<TrainingMethod> TrainingMethod = new ReactiveOption<TrainingMethod>();
 
         public TMP_InputField DepthInputField;
+        
+        public TMP_InputField EvolutionAccelerationField;
+        public GameObject EvolutionMode;
+
         public TextMeshProUGUI DepthText;
 
         void Awake()
@@ -44,6 +48,7 @@ namespace Trainer.Options
         void VariationTypeChanged(TrainerType newValue)
         {
             TrainerData.DepthType = newValue;
+            EvolutionMode.gameObject.SetActive(newValue == TrainerData.TrainerType.EvolutionMode);
             if (DepthText != null)
             {
                 switch (newValue)
@@ -114,6 +119,7 @@ namespace Trainer.Options
                     TrainingMethod.Value = TrainerData.Method;
 
                     DepthInputField.text = TrainerData.Depth.ToString();
+                    EvolutionAccelerationField.text = TrainerData.EvolutionAcceleration.ToString();
 
                     _trainerObject.UpdateViewedMove(TrainerData.StartingMove);
                     StartCoroutine(_trainerObject.SetChain(TrainerData.StartingMove));
@@ -228,6 +234,24 @@ namespace Trainer.Options
             {
                 DepthInputField.text = "";
                 TrainerData.Depth = -1;
+            }
+        }
+
+        public void OnEvolutionAccelerationChanged()
+        {
+            if (int.TryParse(EvolutionAccelerationField.text, out int value))
+            {
+                TrainerData.EvolutionAcceleration = value;
+                if (value <= 0)
+                {
+                    EvolutionAccelerationField.text = "";
+                    TrainerData.EvolutionAcceleration = 1;
+                }
+            }
+            else
+            {
+                EvolutionAccelerationField.text = "";
+                TrainerData.EvolutionAcceleration = 1;
             }
         }
     }

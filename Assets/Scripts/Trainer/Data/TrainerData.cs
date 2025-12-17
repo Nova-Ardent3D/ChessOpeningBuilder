@@ -33,10 +33,11 @@ namespace Trainer.Data
             RepeatVariationOnFailed,
         }
 
-        public const int Version = 3;
+        public const int Version = 4;
 
         public PieceColor Color = PieceColor.White;
         public int Depth = -1;
+        public int EvolutionAcceleration = 1;
         public TrainerType DepthType = TrainerType.ByCompleteVariation;
         public StatsView StatsDisplay = StatsView.ByMove;
         public TrainingMethod Method = TrainingMethod.RunOnce;
@@ -54,6 +55,7 @@ namespace Trainer.Data
             yield return TrainerData.Version.ToString();
             yield return (trainerData.Color == PieceColor.White ? "W" : "B");
             yield return trainerData.Depth.ToString();
+            yield return trainerData.EvolutionAcceleration.ToString();
             yield return trainerData.DepthType.ToString();
             yield return trainerData.StatsDisplay.ToString();
             yield return trainerData.Method.ToString();
@@ -79,6 +81,17 @@ namespace Trainer.Data
             contents.MoveNext();
             Debug.Log(contents.Current);
             trainerData.Depth = int.Parse(contents.Current.Trim());
+
+            if (version <= 3)
+            {
+                trainerData.EvolutionAcceleration = 1;
+            }
+            else
+            {
+                contents.MoveNext();
+                Debug.Log(contents.Current);
+                trainerData.EvolutionAcceleration = int.Parse(contents.Current.Trim());
+            }
 
             contents.MoveNext();
             Debug.Log(contents.Current);

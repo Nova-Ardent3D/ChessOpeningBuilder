@@ -1,3 +1,4 @@
+using Board.Display.Moves;
 using Common;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,14 +19,9 @@ namespace Trainer.AI.Modes
         {
             if (!_initialized)
             {
-                foreach (var move in trainerMoveInformation.PossibleNextMoves)
+                foreach (var nextVariation in EvolveVariation(trainerMoveInformation.PossibleNextMoves, 1, true))
                 {
-                    _currentEvolution.Add(new Variation()
-                    {
-                        WasPerfect = true,
-                        WasPerfectThisIteration = true,
-                        MoveList = move.GetMoveChain()
-                    });
+                    _currentEvolution.Add(nextVariation);
                 }
 
                 _initialized = true;
@@ -38,14 +34,9 @@ namespace Trainer.AI.Modes
                 {
                     if (move.WasPerfectThisIteration)
                     {
-                        foreach (var nextMove in move.MoveList.Last().PossibleNextMoves)
+                        foreach (var nextVariation in EvolveVariation(move.MoveList.Last().PossibleNextMoves, 1, false))
                         {
-                            nextEvolution.Add(new Variation()
-                            {
-                                WasPerfect = true,
-                                WasPerfectThisIteration = true,
-                                MoveList = nextMove.GetMoveChain()
-                            });
+                            nextEvolution.Add(nextVariation);
                         }
                     }
                     else
@@ -65,6 +56,29 @@ namespace Trainer.AI.Modes
             foreach (var move in _currentEvolution)
             {
                 CurrentTrainingSession.Variations.Add(move);
+            }
+        }
+
+        public IEnumerable<Variation> EvolveVariation(IEnumerable<TrainerMoveInformation> moves, int evolutionDepth, bool initial)
+        {
+            foreach (var move in moves)
+            {
+                if ((initial ? evolutionDepth >= TrainerData.Depth : evolutionDepth >= TrainerData.EvolutionAcceleration) || move.PossibleNextMoves.Count == 0)
+                {
+                    yield return new Variation()
+                    {
+                        WasPerfect = true,
+                        WasPerfectThisIteration = true,
+                        MoveList = move.GetMoveChain()
+                    };
+                }
+                else
+                {
+                    foreach (var nextVariation in EvolveVariation(move.PossibleNextMoves, evolutionDepth + 1, initial))
+                    {
+                        yield return nextVariation;
+                    }
+                }
             }
         }
 
